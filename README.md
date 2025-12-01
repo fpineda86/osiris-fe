@@ -1,73 +1,56 @@
-# React + TypeScript + Vite
+# Osiris Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend en React + Vite para la plataforma Osiris. Incluye módulos de Administración (Empresas, Sucursales, Puntos de Emisión), Seguridad (Roles, Usuarios) y Clientes (Tipos de Cliente, Clientes). Integra con el backend en `http://localhost:8000/api`.
 
-Currently, two official plugins are available:
+## Requisitos
+- Node.js 18+ (recomendado 20)
+- npm, yarn o pnpm
+- Backend Osiris corriendo en `localhost:8000` (ver `.env.local`)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Configuración
+1. Clonar el repositorio  
+   `git clone https://github.com/tu-org/osiris-frontend.git`
+2. Instalar dependencias  
+   `npm install`
+3. Variables de entorno  
+   Copia `.env.local` o crea un `.env.local` con, por ejemplo:  
+   ```
+   VITE_API_BASE=http://localhost:8000
+   ```
+4. Levantar en desarrollo  
+   `npm run dev`  
+   (abre `http://localhost:5173`)
+5. Build para producción  
+   `npm run build`
+6. Vista previa de build  
+   `npm run preview`
 
-## React Compiler
+## Estructura rápida
+- `src/App.jsx`: rutas y navegación.
+- `src/adapters/primary/`: páginas (capa de UI + casos de uso).
+- `src/adapters/secondary/`: adapters HTTP hacia el backend.
+- `src/domain/`: entidades, puertos (repositorios) y casos de uso.
+- `src/components/`: formularios y listados reutilizables.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Módulos y endpoints
+- Empresas: `/api/empresa`
+- Sucursales: `/api/sucursales`
+- Puntos de Emisión: `/api/puntos-emision`
+- Roles: `/api/roles`
+- Usuarios: `/api/usuarios` (crea/actualiza persona en `/api/personas`)
+- Tipos de Cliente: `/api/tipos-cliente`
+- Clientes: `/api/clientes` (crea/actualiza persona en `/api/personas`)
 
-## Expanding the ESLint configuration
+## Notas operativas
+- Los formularios limpian campos tras crear.
+- Validaciones del backend se muestran bajo cada campo.
+- Borrado es lógico (activo=false) donde aplica.
+- Usuarios/Clientes: se hace lookup de persona por identificación al salir del campo.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Scripts npm
+- `dev`: servidor de desarrollo Vite.
+- `build`: build de producción.
+- `preview`: sirve el build localmente.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Git
+`.gitignore` ya incluye `node_modules`, `dist` y `.env*`. No subas credenciales ni `.env.local`.
