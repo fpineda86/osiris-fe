@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 const PAGE_SIZE = 6;
 
-export default function ClienteList({ items, loading, error, onEdit, onDelete }) {
+export default function ProveedorList({ items, loading, error, onEdit, onDelete }) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
@@ -12,7 +12,9 @@ export default function ClienteList({ items, loading, error, onEdit, onDelete })
     const term = search.trim().toLowerCase();
     const source = Array.isArray(items) ? items : [];
     if (!term) return source;
-    return source.filter(c => (`${c.identificacion || ''} ${c.nombre || ''} ${c.apellido || ''} ${c.email || ''}`).toLowerCase().includes(term));
+    return source.filter(p => (
+      `${p.identificacion || ''} ${p.nombre || ''} ${p.apellido || ''} ${p.nombreComercial || ''}`
+    ).toLowerCase().includes(term));
   }, [items, search]);
 
   const totalPages = Math.max(1, Math.ceil((filtered?.length || 0) / PAGE_SIZE));
@@ -20,7 +22,7 @@ export default function ClienteList({ items, loading, error, onEdit, onDelete })
   const start = (currentPage - 1) * PAGE_SIZE;
   const visible = (filtered || []).slice(start, start + PAGE_SIZE);
 
-  if (loading) return <p className="muted">Cargando clientes...</p>;
+  if (loading) return <p className="muted">Cargando proveedores...</p>;
   if (error) return <p className="error-text">* {String(error)}</p>;
 
   return (
@@ -28,7 +30,7 @@ export default function ClienteList({ items, loading, error, onEdit, onDelete })
       <div className="list-toolbar">
         <input
           className="input search"
-          placeholder="Buscar cliente"
+          placeholder="Buscar proveedor"
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
@@ -36,17 +38,17 @@ export default function ClienteList({ items, loading, error, onEdit, onDelete })
       </div>
 
       {visible.length === 0 ? (
-        <p className="muted">No hay clientes que coincidan.</p>
+        <p className="muted">No hay proveedores que coincidan.</p>
       ) : (
         <ul className="item-list">
-          {visible.map(c => (
-            <li className="item-row" key={c.id ?? c.identificacion}>
+          {visible.map(p => (
+            <li key={p.id ?? p.identificacion} className="item-row">
               <div className="item-main">
                 <p className="item-title">
-                  {c.identificacion ? `${c.identificacion} - ` : ''}{`${c.nombre || ''} ${c.apellido || ''}`.trim() || 'Sin nombre'}
+                  {p.identificacion ? `${p.identificacion} - ` : ''}{`${p.nombre || ''} ${p.apellido || ''}`.trim() || 'Sin nombre'}
                 </p>
                 <p className="item-sub">
-                  {c.tipoClienteNombre || 'Sin tipo de cliente'}
+                  {p.nombreComercial || 'Sin nombre comercial'}{p.tipoContribuyenteNombre ? ` · ${p.tipoContribuyenteNombre}` : ''}
                 </p>
               </div>
               {onEdit && onDelete && (
@@ -56,7 +58,7 @@ export default function ClienteList({ items, loading, error, onEdit, onDelete })
                     className="icon-btn edit"
                     title="Editar"
                     aria-label="Editar"
-                    onClick={() => onEdit(c)}
+                    onClick={() => onEdit(p)}
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M12 20h9" />
@@ -68,7 +70,7 @@ export default function ClienteList({ items, loading, error, onEdit, onDelete })
                     className="icon-btn delete"
                     title="Eliminar"
                     aria-label="Eliminar"
-                    onClick={() => onDelete(c)}
+                    onClick={() => onDelete(p)}
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M3 6h18" />

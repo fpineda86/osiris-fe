@@ -19,17 +19,26 @@ export default class UsuarioApiAdapter extends UsuarioRepository {
   }
 
   mapEntity(item, fallback = {}) {
+    const persona = item.persona || {};
     return new Usuario({
       id: item.id ?? fallback.id,
-      personaId: item.persona_id ?? item.personaId ?? fallback.personaId,
+      personaId: item.persona_id ?? item.personaId ?? persona.id ?? fallback.personaId,
       rolId: item.rol_id ?? item.rolId ?? fallback.rolId,
       username: item.username ?? fallback.username,
       requiereCambioPassword: item.requiere_cambio_password ?? item.requiereCambioPassword ?? fallback.requiereCambioPassword,
       activo: item.activo ?? fallback.activo ?? true,
-      personaNombre: item.persona?.nombre
-        ? `${item.persona.nombre || ''} ${item.persona.apellido || ''}`.trim()
+      personaNombre: persona.nombre
+        ? `${persona.nombre || ''} ${persona.apellido || ''}`.trim()
         : fallback.personaNombre || '',
       rolNombre: item.rol?.nombre || fallback.rolNombre || '',
+      identificacion: persona.identificacion ?? item.identificacion ?? fallback.identificacion,
+      tipoIdentificacion: persona.tipo_identificacion ?? item.tipoIdentificacion ?? fallback.tipoIdentificacion,
+      nombre: persona.nombre ?? fallback.nombre,
+      apellido: persona.apellido ?? fallback.apellido,
+      direccion: persona.direccion ?? fallback.direccion,
+      telefono: persona.telefono ?? fallback.telefono,
+      ciudad: persona.ciudad ?? fallback.ciudad,
+      email: persona.email ?? fallback.email,
     });
   }
 
@@ -62,10 +71,21 @@ export default class UsuarioApiAdapter extends UsuarioRepository {
   }
 
   async getAll() {
-    const res = await api.get('/api/usuarios');
-    const data = Array.isArray(res.data?.items) ? res.data.items : Array.isArray(res.data) ? res.data : [];
+    const [userRes, personasRes] = await Promise.all([
+      api.get('/api/usuarios'),
+      api.get('/api/personas'),
+    ]);
+    const data = Array.isArray(userRes.data?.items) ? userRes.data.items : Array.isArray(userRes.data) ? userRes.data : [];
+    const personasArr = Array.isArray(personasRes.data?.items) ? personasRes.data.items : Array.isArray(personasRes.data) ? personasRes.data : [];
+    const personaMap = personasArr
+      .filter(p => p.activo !== false)
+      .reduce((acc, p) => { acc[p.id] = p; return acc; }, {});
+
     const activeOnly = data.filter(u => u.activo !== false);
-    return activeOnly.map(u => this.mapEntity(u));
+    return activeOnly.map(u => {
+      const persona = u.persona || personaMap[u.persona_id] || personaMap[u.personaId];
+      return this.mapEntity({ ...u, persona });
+    });
   }
 
   async create(payload) {

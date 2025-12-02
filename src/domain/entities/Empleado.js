@@ -6,6 +6,14 @@ export default class Empleado {
     id,
     personaId,
     personaIdentificacion,
+    identificacion,
+    tipoIdentificacion,
+    nombre,
+    apellido,
+    direccion,
+    telefono,
+    ciudad,
+    email,
     salario,
     fechaIngreso,
     fechaNacimiento,
@@ -19,6 +27,14 @@ export default class Empleado {
     this.id = id ?? null;
     this.personaId = personaId ?? '';
     this.personaIdentificacion = personaIdentificacion ?? '';
+    this.identificacion = identificacion ?? '';
+    this.tipoIdentificacion = tipoIdentificacion ?? '';
+    this.nombre = nombre ?? '';
+    this.apellido = apellido ?? '';
+    this.direccion = direccion ?? '';
+    this.telefono = telefono ?? '';
+    this.ciudad = ciudad ?? '';
+    this.email = email ?? '';
     this.salario = salario ?? 0;
     this.fechaIngreso = fechaIngreso ?? '';
     this.fechaNacimiento = fechaNacimiento ?? '';

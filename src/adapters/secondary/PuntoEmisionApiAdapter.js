@@ -125,7 +125,9 @@ export default class PuntoEmisionApiAdapter extends PuntoEmisionRepository {
 
   async getEmpresaCatalog() {
     const empresas = await this.empresaAdapter.getAll();
-    return empresas.map(e => ({ value: e.id, label: e.razonSocial || e.nombreComercial || e.id })).filter(opt => opt.value);
+    return empresas
+      .map(e => ({ value: e.id, label: e.nombreComercial || e.razonSocial || e.id }))
+      .filter(opt => opt.value);
   }
 
   async getSucursalCatalog(empresaId = null) {

@@ -6,6 +6,7 @@ export default class Cliente {
     id,
     personaId,
     tipoClienteId,
+    tipoClienteNombre,
     identificacion,
     tipoIdentificacion,
     nombre,
@@ -20,6 +21,7 @@ export default class Cliente {
     this.id = id ?? null;
     this.personaId = personaId ?? null;
     this.tipoClienteId = tipoClienteId ?? '';
+    this.tipoClienteNombre = tipoClienteNombre ?? '';
     this.identificacion = identificacion ?? '';
     this.tipoIdentificacion = tipoIdentificacion ?? '';
     this.nombre = nombre ?? '';

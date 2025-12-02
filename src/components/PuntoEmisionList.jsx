@@ -40,26 +40,50 @@ export default function PuntoEmisionList({ items, loading, error, onEdit, onDele
       {visible.length === 0 ? (
         <p className="muted">No hay puntos de emision que coincidan.</p>
       ) : (
-        <div className="empresa-list">
+        <ul className="item-list">
           {visible.map(p => (
-            <div className="empresa-item" key={p.id ?? p.codigo}>
-              <div className="empresa-title">{p.descripcion || 'Sin descripcion'}</div>
-              <div className="empresa-subtitle">
-                {p.empresaLabel || 'Sin empresa'} {p.sucursalLabel ? `- ${p.sucursalLabel}` : ''}
-              </div>
-              <div className="empresa-meta">
-                <span>Codigo: {p.codigo || 'N/A'}</span>
-                <span>Secuencial: {p.secuencialActual ?? 'N/A'}</span>
+            <li className="item-row" key={p.id ?? p.codigo}>
+              <div className="item-main">
+                <p className="item-title">
+                  {(p.empresaLabel || 'Sin empresa')}
+                  {p.sucursalLabel ? ` - ${p.sucursalLabel}` : ''}
+                  {p.descripcion ? ` - ${p.descripcion}` : ''}
+                </p>
               </div>
               {onEdit && onDelete && (
                 <div className="item-actions">
-                  <button type="button" className="btn-ghost" onClick={() => onEdit(p)}>Editar</button>
-                  <button type="button" className="btn-secondary" onClick={() => onDelete(p)}>Eliminar</button>
+                  <button
+                    type="button"
+                    className="icon-btn edit"
+                    title="Editar"
+                    aria-label="Editar"
+                    onClick={() => onEdit(p)}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M12 20h9" />
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn delete"
+                    title="Eliminar"
+                    aria-label="Eliminar"
+                    onClick={() => onDelete(p)}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M3 6h18" />
+                      <path d="M8 6V4h8v2" />
+                      <path d="M19 6 18 20H6L5 6" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                    </svg>
+                  </button>
                 </div>
               )}
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
       {filtered.length > PAGE_SIZE && (

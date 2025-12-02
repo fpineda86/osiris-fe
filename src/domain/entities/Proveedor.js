@@ -1,16 +1,13 @@
 /**
- * Entidad Usuario.
+ * Entidad Proveedor con datos de persona y tipo de contribuyente.
  */
-export default class Usuario {
+export default class Proveedor {
   constructor({
     id,
     personaId,
-    rolId,
-    username,
-    requiereCambioPassword,
-    activo,
-    personaNombre,
-    rolNombre,
+    nombreComercial,
+    tipoContribuyenteId,
+    tipoContribuyenteNombre,
     identificacion,
     tipoIdentificacion,
     nombre,
@@ -19,15 +16,14 @@ export default class Usuario {
     telefono,
     ciudad,
     email,
+    usuarioAuditoria,
+    activo,
   } = {}) {
     this.id = id ?? null;
-    this.personaId = personaId ?? '';
-    this.rolId = rolId ?? '';
-    this.username = username ?? '';
-    this.requiereCambioPassword = requiereCambioPassword ?? false;
-    this.activo = activo ?? true;
-    this.personaNombre = personaNombre ?? '';
-    this.rolNombre = rolNombre ?? '';
+    this.personaId = personaId ?? null;
+    this.nombreComercial = nombreComercial ?? '';
+    this.tipoContribuyenteId = tipoContribuyenteId ?? '';
+    this.tipoContribuyenteNombre = tipoContribuyenteNombre ?? '';
     this.identificacion = identificacion ?? '';
     this.tipoIdentificacion = tipoIdentificacion ?? '';
     this.nombre = nombre ?? '';
@@ -36,6 +32,8 @@ export default class Usuario {
     this.telefono = telefono ?? '';
     this.ciudad = ciudad ?? '';
     this.email = email ?? '';
+    this.usuarioAuditoria = usuarioAuditoria ?? '';
+    this.activo = activo ?? true;
     Object.freeze(this);
   }
 }

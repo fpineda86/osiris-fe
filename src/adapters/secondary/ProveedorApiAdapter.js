@@ -1,20 +1,21 @@
 /**
- * Adapter para Clientes (crea persona en backend).
+ * Adapter para Proveedores.
  */
 import api from '../../api/client.js';
-import Cliente from '../../domain/entities/Cliente.js';
-import ClienteRepository from '../../domain/ports/ClienteRepository.js';
-import TipoClienteApiAdapter from './TipoClienteApiAdapter.js';
+import Proveedor from '../../domain/entities/Proveedor.js';
+import ProveedorRepository from '../../domain/ports/ProveedorRepository.js';
+import EmpresaApiAdapter from './EmpresaApiAdapter.js';
 
 const PERSONA_ENDPOINT = '/api/personas';
+const PROVEEDOR_ENDPOINT = '/api/proveedores-persona';
 
-export default class ClienteApiAdapter extends ClienteRepository {
+export default class ProveedorApiAdapter extends ProveedorRepository {
   constructor() {
     super();
-    this.tipoAdapter = new TipoClienteApiAdapter();
+    this.empresaAdapter = new EmpresaApiAdapter();
   }
 
-  sanitize(obj, {keepNullKeys = []} = {}) {
+  sanitize(obj, { keepNullKeys = [] } = {}) {
     const out = {};
     Object.entries(obj || {}).forEach(([k, v]) => {
       if (keepNullKeys.includes(k)) {
@@ -28,29 +29,6 @@ export default class ClienteApiAdapter extends ClienteRepository {
     return out;
   }
 
-  mapFieldKey(path) {
-    const map = {
-      identificacion: 'identificacion',
-      tipo_identificacion: 'tipoIdentificacion',
-      nombre: 'nombre',
-      apellido: 'apellido',
-      direccion: 'direccion',
-      telefono: 'telefono',
-      ciudad: 'ciudad',
-      email: 'email',
-      usuario_auditoria: 'usuarioAuditoria',
-      persona_id: 'personaId',
-      tipo_cliente_id: 'tipoClienteId',
-      activo: 'activo',
-    };
-    // paths like persona.identificacion
-    if (typeof path === 'string' && path.startsWith('persona.')) {
-      const key = path.replace('persona.', '');
-      return map[key] || key;
-    }
-    return map[path] || path;
-  }
-
   normalizeError(error) {
     const detail = error?.response?.data?.detail;
     const fieldErrors = {};
@@ -59,14 +37,14 @@ export default class ClienteApiAdapter extends ClienteRepository {
     if (Array.isArray(detail)) {
       message = detail.map(d => d.msg || JSON.stringify(d)).join(' / ');
       detail.forEach(d => {
-        let path = null;
         if (Array.isArray(d.loc)) {
-          // If nested like ['body','persona','identificacion']
-          path = d.loc.slice(1).join('.');
-        }
-        if (path) {
-          const key = this.mapFieldKey(path);
-          fieldErrors[key] = d.msg || String(d);
+          const key = d.loc[d.loc.length - 1];
+          const map = {
+            persona_id: 'personaId',
+            nombre_comercial: 'nombreComercial',
+            tipo_contribuyente_id: 'tipoContribuyenteId',
+          };
+          fieldErrors[map[key] || key] = d.msg || String(d);
         }
       });
     } else if (detail) {
@@ -80,12 +58,13 @@ export default class ClienteApiAdapter extends ClienteRepository {
 
   mapEntity(item, fallback = {}) {
     const persona = item.persona || {};
-    const tipoCliente = item.tipo_cliente || {};
-    return new Cliente({
+    const tipo = item.tipo_contribuyente || {};
+    return new Proveedor({
       id: item.id ?? fallback.id,
       personaId: item.persona_id ?? persona.id ?? fallback.personaId,
-      tipoClienteId: item.tipo_cliente_id ?? item.tipoClienteId ?? fallback.tipoClienteId,
-      tipoClienteNombre: tipoCliente.nombre ?? fallback.tipoClienteNombre,
+      nombreComercial: item.nombre_comercial ?? fallback.nombreComercial,
+      tipoContribuyenteId: item.tipo_contribuyente_id ?? item.tipoContribuyenteId ?? fallback.tipoContribuyenteId,
+      tipoContribuyenteNombre: tipo.nombre ?? fallback.tipoContribuyenteNombre,
       identificacion: persona.identificacion ?? fallback.identificacion,
       tipoIdentificacion: persona.tipo_identificacion ?? fallback.tipoIdentificacion,
       nombre: persona.nombre ?? fallback.nombre,
@@ -100,72 +79,31 @@ export default class ClienteApiAdapter extends ClienteRepository {
   }
 
   async getAll() {
-    const [clientesRes, personasRes, tiposCliente] = await Promise.all([
-      api.get('/api/clientes'),
-      api.get('/api/personas'),
-      this.tipoAdapter.getAll(),
+    const [proveedoresRes, personasRes, tiposCatalog] = await Promise.all([
+      api.get(PROVEEDOR_ENDPOINT),
+      api.get(PERSONA_ENDPOINT),
+      this.getTipoContribuyenteCatalog(),
     ]);
-    const data = Array.isArray(clientesRes.data?.items) ? clientesRes.data.items : Array.isArray(clientesRes.data) ? clientesRes.data : [];
+    const data = Array.isArray(proveedoresRes.data?.items) ? proveedoresRes.data.items : Array.isArray(proveedoresRes.data) ? proveedoresRes.data : [];
     const personasArr = Array.isArray(personasRes.data?.items) ? personasRes.data.items : Array.isArray(personasRes.data) ? personasRes.data : [];
     const personaMap = personasArr
       .filter(p => p.activo !== false)
       .reduce((acc, p) => { acc[p.id] = p; return acc; }, {});
-    const tipoMap = Array.isArray(tiposCliente)
-      ? tiposCliente.reduce((acc, t) => { acc[t.id] = t; return acc; }, {})
+    const tipoMap = Array.isArray(tiposCatalog)
+      ? tiposCatalog.reduce((acc, t) => { acc[t.value] = t; return acc; }, {})
       : {};
 
     const activeOnly = data.filter(item => item.activo !== false);
     return activeOnly.map(item => {
       const persona = item.persona || personaMap[item.persona_id] || personaMap[item.personaId];
-      const tipo = item.tipo_cliente || tipoMap[item.tipo_cliente_id] || tipoMap[item.tipoClienteId];
-      return this.mapEntity({ ...item, persona, tipo_cliente: tipo });
+      const tipo = item.tipo_contribuyente || tipoMap[item.tipo_contribuyente_id] || tipoMap[item.tipoContribuyenteId];
+      const tipoContribuyenteNombre = tipo?.label || tipo?.nombre;
+      return this.mapEntity({ ...item, persona, tipo_contribuyente: { nombre: tipoContribuyenteNombre } });
     });
   }
 
   async create(payload) {
-    const persona = this.sanitize({
-      identificacion: payload.identificacion,
-      tipo_identificacion: payload.tipoIdentificacion,
-      nombre: payload.nombre,
-      apellido: payload.apellido,
-      direccion: payload.direccion,
-      telefono: payload.telefono,
-      ciudad: payload.ciudad,
-      email: payload.email,
-      usuario_auditoria: payload.usuarioAuditoria || 'frontend',
-      activo: payload.activo ?? true,
-    });
-
-    let personaId = payload.personaId ?? null;
-    try {
-      if (personaId) {
-        await api.put(`${PERSONA_ENDPOINT}/${personaId}`, persona);
-      } else {
-        const createdPersona = await api.post(PERSONA_ENDPOINT, persona);
-        personaId = createdPersona.data?.id;
-      }
-    } catch (error) {
-      throw this.normalizeError(error);
-    }
-
-    const apiPayload = this.sanitize({
-      persona_id: personaId,
-      tipo_cliente_id: payload.tipoClienteId,
-      usuario_auditoria: payload.usuarioAuditoria || 'frontend',
-    }, { keepNullKeys: ['persona_id'] });
-
-    let res;
-    try {
-      res = await api.post('/api/clientes', apiPayload);
-    } catch (error) {
-      throw this.normalizeError(error);
-    }
-    const item = res.data || payload;
-    return this.mapEntity(item, payload);
-  }
-
-  async update(id, payload) {
-    const persona = this.sanitize({
+    const personaPayload = this.sanitize({
       id: payload.personaId,
       identificacion: payload.identificacion,
       tipo_identificacion: payload.tipoIdentificacion,
@@ -182,9 +120,9 @@ export default class ClienteApiAdapter extends ClienteRepository {
     let personaId = payload.personaId ?? null;
     try {
       if (personaId) {
-        await api.put(`${PERSONA_ENDPOINT}/${personaId}`, persona);
+        await api.put(`${PERSONA_ENDPOINT}/${personaId}`, personaPayload);
       } else {
-        const createdPersona = await api.post(PERSONA_ENDPOINT, persona);
+        const createdPersona = await api.post(PERSONA_ENDPOINT, personaPayload);
         personaId = createdPersona.data?.id;
       }
     } catch (error) {
@@ -193,27 +131,83 @@ export default class ClienteApiAdapter extends ClienteRepository {
 
     const apiPayload = this.sanitize({
       persona_id: personaId,
-      tipo_cliente_id: payload.tipoClienteId,
+      nombre_comercial: payload.nombreComercial,
+      tipo_contribuyente_id: payload.tipoContribuyenteId,
+      usuario_auditoria: payload.usuarioAuditoria || 'frontend',
+    }, { keepNullKeys: ['persona_id'] });
+
+    let res;
+    let tiposCatalog = [];
+    try {
+      tiposCatalog = await this.getTipoContribuyenteCatalog();
+      res = await api.post(PROVEEDOR_ENDPOINT, apiPayload);
+    } catch (error) {
+      throw this.normalizeError(error);
+    }
+    const item = res.data || payload;
+    const tipoLabel = (tiposCatalog || []).find(t => t.value === apiPayload.tipo_contribuyente_id)?.label;
+    const tipoContribuyenteNombre = tipoLabel || apiPayload.tipo_contribuyente_id;
+    return this.mapEntity(item, { ...payload, personaId, tipoContribuyenteNombre });
+  }
+
+  async update(id, payload) {
+    const personaPayload = this.sanitize({
+      id: payload.personaId,
+      identificacion: payload.identificacion,
+      tipo_identificacion: payload.tipoIdentificacion,
+      nombre: payload.nombre,
+      apellido: payload.apellido,
+      direccion: payload.direccion,
+      telefono: payload.telefono,
+      ciudad: payload.ciudad,
+      email: payload.email,
+      usuario_auditoria: payload.usuarioAuditoria || 'frontend',
+      activo: payload.activo ?? true,
+    });
+
+    let personaId = payload.personaId ?? null;
+    try {
+      if (personaId) {
+        await api.put(`${PERSONA_ENDPOINT}/${personaId}`, personaPayload);
+      } else {
+        const createdPersona = await api.post(PERSONA_ENDPOINT, personaPayload);
+        personaId = createdPersona.data?.id;
+      }
+    } catch (error) {
+      throw this.normalizeError(error);
+    }
+
+    const apiPayload = this.sanitize({
+      persona_id: personaId,
+      nombre_comercial: payload.nombreComercial,
+      tipo_contribuyente_id: payload.tipoContribuyenteId,
       usuario_auditoria: payload.usuarioAuditoria || 'frontend',
     }, { keepNullKeys: ['persona_id'] });
 
     let res;
     try {
-      res = await api.put(`/api/clientes/${id}`, apiPayload);
+      const tiposCatalog = await this.getTipoContribuyenteCatalog();
+      res = await api.put(`${PROVEEDOR_ENDPOINT}/${id}`, apiPayload);
+      const tipoLabel = (tiposCatalog || []).find(t => t.value === apiPayload.tipo_contribuyente_id)?.label;
+      const tipoContribuyenteNombre = tipoLabel || apiPayload.tipo_contribuyente_id;
+      const item = res.data || { ...payload, id, personaId };
+      return this.mapEntity(item, { ...payload, id, personaId, tipoContribuyenteNombre });
     } catch (error) {
       throw this.normalizeError(error);
     }
-    const item = res.data || { ...payload, id };
-    return this.mapEntity(item, { ...payload, id });
   }
 
   async delete(id) {
     try {
-      await api.delete(`/api/clientes/${id}`);
+      await api.delete(`${PROVEEDOR_ENDPOINT}/${id}`);
     } catch (error) {
       throw this.normalizeError(error);
     }
     return true;
+  }
+
+  async getTipoContribuyenteCatalog() {
+    return this.empresaAdapter.getTipoContribuyenteCatalog();
   }
 
   async findPersonaByIdentificacion(identificacion) {
@@ -221,25 +215,11 @@ export default class ClienteApiAdapter extends ClienteRepository {
     if (!ident) return null;
     try {
       const res = await api.get(`${PERSONA_ENDPOINT}?identificacion=${encodeURIComponent(ident)}`);
-      // backend may return items meta or plain array
       const personas = Array.isArray(res.data?.items) ? res.data.items : Array.isArray(res.data) ? res.data : [];
       const found = personas.find(p => p.identificacion === ident);
       return found || null;
-    } catch (error) {
-      // If the API does not support filter, fallback: fetch all and filter
-      try {
-        const resAll = await api.get(PERSONA_ENDPOINT);
-        const personas = Array.isArray(resAll.data?.items) ? resAll.data.items : Array.isArray(resAll.data) ? resAll.data : [];
-        const found = personas.find(p => p.identificacion === ident);
-        return found || null;
-      } catch (err) {
-        throw this.normalizeError(err);
-      }
+    } catch {
+      return null;
     }
-  }
-
-  async getTipoClienteCatalog() {
-    const tipos = await this.tipoAdapter.getAll();
-    return tipos.map(t => ({ value: t.id, label: t.nombre })).filter(opt => opt.value);
   }
 }

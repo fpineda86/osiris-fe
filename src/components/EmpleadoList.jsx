@@ -49,12 +49,37 @@ export default function EmpleadoList({ items, loading, error, onEdit, onDelete }
                   {e.personaNombre || 'Empleado'}
                 </p>
                 <p className="item-sub">
-                  {e.username ? `User: ${e.username}` : ''} {e.rolNombre ? `- Rol: ${e.rolNombre}` : ''} {e.salario ? `- Salario: ${e.salario}` : ''}
+                  {e.username ? `User: ${e.username}` : ''} {e.rolNombre ? `- Rol: ${e.rolNombre}` : ''}
                 </p>
               </div>
               <div className="item-actions">
-                <button type="button" className="btn-ghost" onClick={() => onEdit(e)}>Editar</button>
-                <button type="button" className="btn-danger" onClick={() => onDelete(e)}>Eliminar</button>
+                <button
+                  type="button"
+                  className="icon-btn edit"
+                  title="Editar"
+                  aria-label="Editar"
+                  onClick={() => onEdit(e)}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className="icon-btn delete"
+                  title="Eliminar"
+                  aria-label="Eliminar"
+                  onClick={() => onDelete(e)}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M3 6h18" />
+                    <path d="M8 6V4h8v2" />
+                    <path d="M19 6 18 20H6L5 6" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                  </svg>
+                </button>
               </div>
             </li>
           ))}

@@ -8,6 +8,7 @@ import TipoClientePage from './adapters/primary/TipoClientePage.jsx';
 import ClientePage from './adapters/primary/ClientePage.jsx';
 import UsuarioPage from './adapters/primary/UsuarioPage.jsx';
 import EmpleadoPage from './adapters/primary/EmpleadoPage.jsx';
+import ProveedorPage from './adapters/primary/ProveedorPage.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -38,24 +39,38 @@ function SideMenu() {
   return (
     <aside className="side-menu">
       <div className="side-menu-section">
-        <div className="side-menu-title">Administracion</div>
-        <Link to="/empresas" className={pathname.startsWith('/empresas') ? 'active' : ''}>Empresas</Link>
-        <Link to="/sucursales" className={pathname.startsWith('/sucursales') ? 'active' : ''}>Sucursales</Link>
-        <Link to="/puntos-emision" className={pathname.startsWith('/puntos-emision') ? 'active' : ''}>Puntos de emision</Link>
+        <div className="side-menu-title" tabIndex={0}>Administración</div>
+        <div className="side-menu-items">
+          <Link to="/empresas" className={pathname.startsWith('/empresas') ? 'active' : ''}>Empresas</Link>
+          <Link to="/sucursales" className={pathname.startsWith('/sucursales') ? 'active' : ''}>Sucursales</Link>
+          <Link to="/puntos-emision" className={pathname.startsWith('/puntos-emision') ? 'active' : ''}>Puntos de emisión</Link>
+        </div>
       </div>
       <div className="side-menu-section">
-        <div className="side-menu-title">Seguridad</div>
-        <Link to="/roles" className={pathname.startsWith('/roles') ? 'active' : ''}>Roles</Link>
-        <Link to="/usuarios" className={pathname.startsWith('/usuarios') ? 'active' : ''}>Usuarios</Link>
+        <div className="side-menu-title" tabIndex={0}>Seguridad</div>
+        <div className="side-menu-items">
+          <Link to="/roles" className={pathname.startsWith('/roles') ? 'active' : ''}>Roles</Link>
+          <Link to="/usuarios" className={pathname.startsWith('/usuarios') ? 'active' : ''}>Usuarios</Link>
+        </div>
       </div>
       <div className="side-menu-section">
-        <div className="side-menu-title">Talento Humano</div>
-        <Link to="/empleados" className={pathname.startsWith('/empleados') ? 'active' : ''}>Empleados</Link>
+        <div className="side-menu-title" tabIndex={0}>Talento Humano</div>
+        <div className="side-menu-items">
+          <Link to="/empleados" className={pathname.startsWith('/empleados') ? 'active' : ''}>Empleados</Link>
+        </div>
       </div>
       <div className="side-menu-section">
-        <div className="side-menu-title">Clientes</div>
-        <Link to="/tipos-cliente" className={pathname.startsWith('/tipos-cliente') ? 'active' : ''}>Tipos de cliente</Link>
-        <Link to="/clientes" className={pathname.startsWith('/clientes') ? 'active' : ''}>Clientes</Link>
+        <div className="side-menu-title" tabIndex={0}>Clientes</div>
+        <div className="side-menu-items">
+          <Link to="/tipos-cliente" className={pathname.startsWith('/tipos-cliente') ? 'active' : ''}>Tipos de cliente</Link>
+          <Link to="/clientes" className={pathname.startsWith('/clientes') ? 'active' : ''}>Clientes</Link>
+        </div>
+      </div>
+      <div className="side-menu-section">
+        <div className="side-menu-title" tabIndex={0}>Proveedores</div>
+        <div className="side-menu-items">
+          <Link to="/proveedores" className={pathname.startsWith('/proveedores') ? 'active' : ''}>Proveedores (Persona)</Link>
+        </div>
       </div>
     </aside>
   );
@@ -124,6 +139,7 @@ export default function App() {
               <Route path="/empleados" element={<EmpleadoPage />} />
               <Route path="/tipos-cliente" element={<TipoClientePage />} />
               <Route path="/clientes" element={<ClientePage />} />
+              <Route path="/proveedores" element={<ProveedorPage />} />
             </Routes>
           </div>
         </div>

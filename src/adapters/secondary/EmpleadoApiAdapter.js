@@ -19,19 +19,29 @@ export default class EmpleadoApiAdapter extends EmpleadoRepository {
   }
 
   mapEntity(item, fallback = {}) {
+    const persona = item.persona || {};
+    const usuario = item.usuario || {};
     return new Empleado({
       id: item.id ?? fallback.id,
-      personaId: item.persona_id ?? item.personaId ?? fallback.personaId,
+      personaId: item.persona_id ?? item.personaId ?? persona.id ?? fallback.personaId,
       salario: item.salario ?? fallback.salario,
       fechaIngreso: item.fecha_ingreso ?? item.fechaIngreso ?? fallback.fechaIngreso,
       fechaNacimiento: item.fecha_nacimiento ?? item.fechaNacimiento ?? fallback.fechaNacimiento,
       fechaSalida: item.fecha_salida ?? item.fechaSalida ?? fallback.fechaSalida,
-      username: item.usuario?.username ?? fallback.username ?? '',
-      rolId: item.usuario?.rol_id ?? item.rol_id ?? fallback.rolId,
-      personaIdentificacion: item.persona?.identificacion ?? fallback.personaIdentificacion ?? '',
-      personaNombre: item.persona ? `${item.persona.nombre || ''} ${item.persona.apellido || ''}`.trim() : fallback.personaNombre || '',
-      rolNombre: item.usuario?.rol?.nombre || fallback.rolNombre || '',
+      username: usuario.username ?? fallback.username ?? '',
+      rolId: usuario.rol_id ?? item.rol_id ?? fallback.rolId,
+      personaIdentificacion: persona.identificacion ?? fallback.personaIdentificacion ?? '',
+      personaNombre: persona.nombre ? `${persona.nombre || ''} ${persona.apellido || ''}`.trim() : fallback.personaNombre || '',
+      rolNombre: usuario.rol?.nombre || fallback.rolNombre || '',
       activo: item.activo ?? fallback.activo ?? true,
+      identificacion: persona.identificacion ?? fallback.identificacion,
+      tipoIdentificacion: persona.tipo_identificacion ?? fallback.tipoIdentificacion,
+      nombre: persona.nombre ?? fallback.nombre,
+      apellido: persona.apellido ?? fallback.apellido,
+      direccion: persona.direccion ?? fallback.direccion,
+      telefono: persona.telefono ?? fallback.telefono,
+      ciudad: persona.ciudad ?? fallback.ciudad,
+      email: persona.email ?? fallback.email,
     });
   }
 
@@ -67,10 +77,21 @@ export default class EmpleadoApiAdapter extends EmpleadoRepository {
   }
 
   async getAll() {
-    const res = await api.get('/api/empleados');
-    const data = Array.isArray(res.data?.items) ? res.data.items : Array.isArray(res.data) ? res.data : [];
+    const [empleadosRes, personasRes] = await Promise.all([
+      api.get('/api/empleados'),
+      api.get('/api/personas'),
+    ]);
+    const data = Array.isArray(empleadosRes.data?.items) ? empleadosRes.data.items : Array.isArray(empleadosRes.data) ? empleadosRes.data : [];
+    const personasArr = Array.isArray(personasRes.data?.items) ? personasRes.data.items : Array.isArray(personasRes.data) ? personasRes.data : [];
+    const personaMap = personasArr
+      .filter(p => p.activo !== false)
+      .reduce((acc, p) => { acc[p.id] = p; return acc; }, {});
+
     const activeOnly = data.filter(e => e.activo !== false);
-    return activeOnly.map(e => this.mapEntity(e));
+    return activeOnly.map(e => {
+      const persona = e.persona || personaMap[e.persona_id] || personaMap[e.personaId];
+      return this.mapEntity({ ...e, persona });
+    });
   }
 
   async create(payload) {
