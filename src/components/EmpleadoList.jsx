@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 const PAGE_SIZE = 6;
 
-export default function TipoClienteList({ items, loading, error, onEdit, onDelete }) {
+export default function EmpleadoList({ items, loading, error, onEdit, onDelete }) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
@@ -12,7 +12,9 @@ export default function TipoClienteList({ items, loading, error, onEdit, onDelet
     const term = search.trim().toLowerCase();
     const source = Array.isArray(items) ? items : [];
     if (!term) return source;
-    return source.filter(t => (`${t.nombre || ''} ${t.descuento || ''}`).toLowerCase().includes(term));
+    return source.filter(e => (
+      `${e.personaIdentificacion || ''} ${e.personaNombre || ''} ${e.username || ''} ${e.rolNombre || ''}`
+    ).toLowerCase().includes(term));
   }, [items, search]);
 
   const totalPages = Math.max(1, Math.ceil((filtered?.length || 0) / PAGE_SIZE));
@@ -20,15 +22,15 @@ export default function TipoClienteList({ items, loading, error, onEdit, onDelet
   const start = (currentPage - 1) * PAGE_SIZE;
   const visible = (filtered || []).slice(start, start + PAGE_SIZE);
 
-  if (loading) return <p className="muted">Cargando tipos de cliente...</p>;
-  if (error) return <p className="error-text">* {String(error)}</p>;
+  if (loading) return <p className="muted">Cargando empleados...</p>;
+  if (error) return <p className="error-text">Error: {String(error)}</p>;
 
   return (
     <div className="list-shell">
       <div className="list-toolbar">
         <input
           className="input search"
-          placeholder="Buscar tipo de cliente"
+          placeholder="Buscar empleado"
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
@@ -36,18 +38,23 @@ export default function TipoClienteList({ items, loading, error, onEdit, onDelet
       </div>
 
       {visible.length === 0 ? (
-        <p className="muted">No hay tipos de cliente que coincidan.</p>
+        <p className="muted">No hay empleados que coincidan.</p>
       ) : (
         <ul className="item-list">
-          {visible.map(t => (
-            <li key={t.id} className="item-row">
+          {visible.map(e => (
+            <li key={e.id} className="item-row">
               <div className="item-main">
-                <p className="item-title">{t.nombre}</p>
-                <p className="item-sub">Descuento: {t.descuento ?? 0}</p>
+                <p className="item-title">
+                  {e.personaIdentificacion ? `${e.personaIdentificacion} - ` : ''}
+                  {e.personaNombre || 'Empleado'}
+                </p>
+                <p className="item-sub">
+                  {e.username ? `User: ${e.username}` : ''} {e.rolNombre ? `- Rol: ${e.rolNombre}` : ''} {e.salario ? `- Salario: ${e.salario}` : ''}
+                </p>
               </div>
               <div className="item-actions">
-                <button type="button" className="btn-ghost" onClick={() => onEdit(t)}>Editar</button>
-                <button type="button" className="btn-danger" onClick={() => onDelete(t)}>Eliminar</button>
+                <button type="button" className="btn-ghost" onClick={() => onEdit(e)}>Editar</button>
+                <button type="button" className="btn-danger" onClick={() => onDelete(e)}>Eliminar</button>
               </div>
             </li>
           ))}

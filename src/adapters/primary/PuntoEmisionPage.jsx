@@ -24,6 +24,14 @@ export default function PuntoEmisionPage() {
   const createUsecase = useMemo(() => new CreatePuntoEmision(adapter), [adapter]);
   const updateUsecase = useMemo(() => new UpdatePuntoEmision(adapter), [adapter]);
   const deleteUsecase = useMemo(() => new DeletePuntoEmision(adapter), [adapter]);
+  const decoratedItems = useMemo(
+    () => (items || []).map(p => ({
+      ...p,
+      empresaLabel: empresaOptions.find(opt => opt.value === p.empresaId)?.label || '',
+      sucursalLabel: sucursalOptions.find(opt => opt.value === p.sucursalId)?.label || '',
+    })),
+    [items, empresaOptions, sucursalOptions],
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -156,7 +164,7 @@ export default function PuntoEmisionPage() {
             <span className="panel-title">Listado</span>
           </div>
           <PuntoEmisionList
-            items={items}
+            items={decoratedItems}
             loading={loading}
             error={listError}
             onEdit={handleEdit}

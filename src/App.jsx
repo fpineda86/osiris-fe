@@ -7,47 +7,57 @@ import RolPage from './adapters/primary/RolPage.jsx';
 import TipoClientePage from './adapters/primary/TipoClientePage.jsx';
 import ClientePage from './adapters/primary/ClientePage.jsx';
 import UsuarioPage from './adapters/primary/UsuarioPage.jsx';
+import EmpleadoPage from './adapters/primary/EmpleadoPage.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
-function Nav() {
-  const { pathname } = useLocation();
+function TopBar() {
   return (
-    <header className="ol-nav">
-      <div className="brand">
-        <div className="brand-mark" />
-        <div className="brand-text">
-          <span className="brand-kicker">Open Latina</span>
-          <span className="brand-name">Osiris</span>
+    <header className="top-bar">
+      <Link to="/" className="logo-link" aria-label="Ir a inicio">
+        <img src="/osiris-logo.svg" alt="Osiris" className="logo-img" />
+      </Link>
+      <div className="user-menu">
+        <button className="user-chip" type="button">
+          <span className="user-avatar">U</span>
+          <span className="user-name">Usuario</span>
+          <span className="caret">v</span>
+        </button>
+        <div className="user-dropdown">
+          <button type="button">Perfil</button>
+          <button type="button">Configuracion</button>
+          <button type="button">Cerrar sesion</button>
         </div>
       </div>
-      <nav className="nav-links">
-        <Link to="/" className={pathname === '/' ? 'active' : ''}>Inicio</Link>
-        <div className="nav-group">
-          <button type="button" className="nav-trigger">
-            Administracion
-          </button>
-          <div className="nav-menu">
-            <div className="nav-section">
-              <div className="nav-section-title">Empresa</div>
-              <Link to="/empresas" className={pathname.startsWith('/empresas') ? 'active' : ''}>Empresa</Link>
-              <Link to="/sucursales" className={pathname.startsWith('/sucursales') ? 'active' : ''}>Sucursales</Link>
-              <Link to="/puntos-emision" className={pathname.startsWith('/puntos-emision') ? 'active' : ''}>Puntos de emision</Link>
-            </div>
-            <div className="nav-section">
-              <div className="nav-section-title">Seguridad</div>
-              <Link to="/roles" className={pathname.startsWith('/roles') ? 'active' : ''}>Roles</Link>
-              <Link to="/usuarios" className={pathname.startsWith('/usuarios') ? 'active' : ''}>Usuarios</Link>
-            </div>
-            <div className="nav-section">
-              <div className="nav-section-title">Clientes</div>
-              <Link to="/tipos-cliente" className={pathname.startsWith('/tipos-cliente') ? 'active' : ''}>Tipos de cliente</Link>
-              <Link to="/clientes" className={pathname.startsWith('/clientes') ? 'active' : ''}>Cliente</Link>
-            </div>
-          </div>
-        </div>
-      </nav>
     </header>
+  );
+}
+
+function SideMenu() {
+  const { pathname } = useLocation();
+  return (
+    <aside className="side-menu">
+      <div className="side-menu-section">
+        <div className="side-menu-title">Administracion</div>
+        <Link to="/empresas" className={pathname.startsWith('/empresas') ? 'active' : ''}>Empresas</Link>
+        <Link to="/sucursales" className={pathname.startsWith('/sucursales') ? 'active' : ''}>Sucursales</Link>
+        <Link to="/puntos-emision" className={pathname.startsWith('/puntos-emision') ? 'active' : ''}>Puntos de emision</Link>
+      </div>
+      <div className="side-menu-section">
+        <div className="side-menu-title">Seguridad</div>
+        <Link to="/roles" className={pathname.startsWith('/roles') ? 'active' : ''}>Roles</Link>
+        <Link to="/usuarios" className={pathname.startsWith('/usuarios') ? 'active' : ''}>Usuarios</Link>
+      </div>
+      <div className="side-menu-section">
+        <div className="side-menu-title">Talento Humano</div>
+        <Link to="/empleados" className={pathname.startsWith('/empleados') ? 'active' : ''}>Empleados</Link>
+      </div>
+      <div className="side-menu-section">
+        <div className="side-menu-title">Clientes</div>
+        <Link to="/tipos-cliente" className={pathname.startsWith('/tipos-cliente') ? 'active' : ''}>Tipos de cliente</Link>
+        <Link to="/clientes" className={pathname.startsWith('/clientes') ? 'active' : ''}>Clientes</Link>
+      </div>
+    </aside>
   );
 }
 
@@ -100,17 +110,23 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app-shell">
-        <Nav />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/empresas" element={<EmpresaPage />} />
-          <Route path="/sucursales" element={<SucursalPage />} />
-          <Route path="/puntos-emision" element={<PuntoEmisionPage />} />
-          <Route path="/roles" element={<RolPage />} />
-          <Route path="/usuarios" element={<UsuarioPage />} />
-          <Route path="/tipos-cliente" element={<TipoClientePage />} />
-          <Route path="/clientes" element={<ClientePage />} />
-        </Routes>
+        <TopBar />
+        <div className="main-layout">
+          <SideMenu />
+          <div className="content-area">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/empresas" element={<EmpresaPage />} />
+              <Route path="/sucursales" element={<SucursalPage />} />
+              <Route path="/puntos-emision" element={<PuntoEmisionPage />} />
+              <Route path="/roles" element={<RolPage />} />
+              <Route path="/usuarios" element={<UsuarioPage />} />
+              <Route path="/empleados" element={<EmpleadoPage />} />
+              <Route path="/tipos-cliente" element={<TipoClientePage />} />
+              <Route path="/clientes" element={<ClientePage />} />
+            </Routes>
+          </div>
+        </div>
       </div>
     </BrowserRouter>
   );
